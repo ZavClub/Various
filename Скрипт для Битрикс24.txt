@@ -1,0 +1,58 @@
+// Скрипт автоматически начинает и завершает рабочий день в Битрикс24.
+// Работает из Tampermonkey для Google Chrome.
+
+// ==UserScript==
+// @name           bitrix starter
+// @namespace      https*
+// @include        https://ваш_сайт_Битрикс24.ру/?bitrix_starter
+// @require        http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.js
+// @grant          none
+// ==/UserScript==
+
+//СКРИПТ РАБОТАЕТ ТОЛЬКО ПО АДРЕСУ https://ваш_сайт.ру/?bitrix_starter - делайте для этого отдельную вкладку
+//ЗАДАЙТЕ НАСТРОЙКИ
+var howoftenrechek=3;//Как часто проверять статус (перезагружать страницу и выполнять скрипт) в минутах
+var whenstartday_hours=8;//Час, когда нужно начинать рабочий день
+var whenstartday_minutes=55;//Минуты, когда нужно начинать рабочий день
+var whenstopday_hours=18;//Час, когда нужно заканчивать рабочий день
+var whenstopday_minutes=5;//Минуты, когда нужно заканчивать рабочий день
+
+/* eslint-env jquery */
+
+function click_start() {
+    $('#timeman-block').click();
+    $('.ui-btn-success').click();
+}
+
+function click_end() {
+    $('#timeman-block').click();
+    $('.ui-btn-danger').click();
+}
+
+function reload_page() {
+    document.location=document.location;
+}
+
+function run_day() {
+    var dt = new Date();
+    var hours = dt.getHours();
+    var minutes = dt.getMinutes();
+    var day = dt.getDay();
+
+    if(day >= 1 && day <= 5 && hours >= whenstartday_hours && hours <= whenstopday_hours && $("#timeman-status").html() != 'Работаю') {
+        click_start();
+    }
+
+    if(hours >= whenstopday_hours && minutes >= whenstopday_minutes && $("#timeman-status").html() == 'Работаю') {
+        click_end();
+    }
+
+    var html='<div id="disciplinecrack"> Здесь автоотмечание. Сверни эту вкладку!<br><span style="color:red"><a href="https://ваш_сайт_Битрикс24.ру" target="_blank"> Тебе сюда</a></span></div>';
+    $('table.bx-layout-table').hide().before(html);
+    $("#disciplinecrack").css('background','black').css('font-size','3em').css('color','white').css('width','100%').css('height','100%');
+    $('#timeman_main').css('z-index','-100');
+
+    setTimeout(reload_page,howoftenrechek*60000);
+}
+
+setTimeout(run_day,1000);
